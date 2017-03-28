@@ -95,7 +95,7 @@ helm_upgrade() {
   logfile="/tmp/log"
   mkdir -p /tmp
   set -x
-  if ["$chart"]
+  if ["$chart"]; then
     $helm_cmd $source/$chart | tee $logfile
   else if ["$chart_name"]; then
     $helm_cmd $chart_name | tee $logfile
