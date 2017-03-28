@@ -69,11 +69,7 @@ helm_install() {
   fi
   logfile="/tmp/log"
   mkdir -p /tmp
-  if ["$chart"]
-    $helm_cmd $source/$chart | tee $logfile
-  else if ["$chart_name"]; then
     $helm_cmd $chart_name | tee $logfile
-  fi
   # Find the name of the release
   release=`cat $logfile | grep "NAME:" | awk '{print $2}'`
 }
@@ -95,11 +91,7 @@ helm_upgrade() {
   logfile="/tmp/log"
   mkdir -p /tmp
   set -x
-  if ["$chart"]; then
-    $helm_cmd $source/$chart | tee $logfile
-  else if ["$chart_name"]; then
     $helm_cmd $chart_name | tee $logfile
-  fi
   set +x
 }
 
