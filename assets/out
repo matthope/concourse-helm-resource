@@ -18,7 +18,11 @@ setup_resource $payload
 echo "Resource setup successful."
 
 # Parse parameters
-namespace=$(jq -r '.source.namespace // "default"' < $payload)
+namespace=`cat $source/$namespace`
+if [ -z "$namespace" ]; then
+  namespace=$(jq -r '.source.namespace // ""' < $payload)
+fi
+namespace=$(jq -r '.params.namespace // "default"' < $payload)
 chart=$(jq -r '.params.chart // ""' < $payload)
 chart_name=$(jq -r '.params.chart_name // ""' < $payload)
 release_file=$(jq -r '.params.release // ""' < $payload)
