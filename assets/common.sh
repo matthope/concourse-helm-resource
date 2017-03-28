@@ -9,6 +9,7 @@ setup_kubernetes() {
     echo "invalid payload (missing cluster_url)"
     exit 1
   fi
+
   if [[ "$cluster_url" =~ https.* ]]; then
 
     cluster_ca=$(jq -r '.source.cluster_ca // ""' < $payload)
@@ -43,7 +44,11 @@ setup_kubernetes() {
 }
 
 setup_helm() {
-  helm init -c > /dev/nulll
+  repo_name=$(jq -r '.source.repo_name // ""' < $payload)
+  repo_url=$(jq -r '.source.repo_url // ""' < $payload)
+
+  helm init -c > /dev/null
+  helm repo add $repo_name $repo_url
   helm version
 }
 
