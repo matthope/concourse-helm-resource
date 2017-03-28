@@ -27,10 +27,7 @@ wait_until_ready=$(jq -r '.params.wait_until_ready // 0' < $payload)
 debug=$(jq -r '.params.debug // "false"' < $payload)
 replace=$(jq -r '.params.replace // "false"' < $payload)
 delete=$(jq -r '.params.delete // "false"' < $payload)
-if [ -z "$chart" ] || [ -z "$chart_name" ]; then
-  echo "invalid payload (missing chart or chart_name)"
-  exit 1
-fi
+
 if [ -n "$release_file" ]; then
   release=`cat $source/$release_file`
 else
@@ -75,7 +72,7 @@ helm_install() {
   if ["$chart"]
     $helm_cmd $source/$chart | tee $logfile
   else if ["$chart_name"]; then
-    $helm_cmd $source/$chart_name | tee $logfile
+    $helm_cmd $chart_name | tee $logfile
   fi
   # Find the name of the release
   release=`cat $logfile | grep "NAME:" | awk '{print $2}'`
@@ -101,7 +98,7 @@ helm_upgrade() {
   if ["$chart"]
     $helm_cmd $source/$chart | tee $logfile
   else if ["$chart_name"]; then
-    $helm_cmd $source/$chart_name | tee $logfile
+    $helm_cmd $chart_name | tee $logfile
   fi
   set +x
 }
