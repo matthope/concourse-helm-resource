@@ -28,7 +28,7 @@ debug=$(jq -r '.params.debug // "false"' < $payload)
 replace=$(jq -r '.params.replace // "false"' < $payload)
 delete=$(jq -r '.params.delete // "false"' < $payload)
 
-if [ -z "$namespace_file" ]; then
+if [ -n "$namespace_file" ]; then
   namespace=`cat $source/$namespace`
 else
   namespace=$(jq -r '.source.namespace // ""' < $payload)
