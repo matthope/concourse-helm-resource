@@ -18,11 +18,7 @@ setup_resource $payload
 echo "Resource setup successful."
 
 # Parse parameters
-namespace=`cat $source/$namespace`
-if [ -z "$namespace" ]; then
-  namespace=$(jq -r '.source.namespace // ""' < $payload)
-fi
-namespace=$(jq -r '.params.namespace // "default"' < $payload)
+namespace_file=$(jq -r '.params.namespace // ""' < $payload)
 chart=$(jq -r '.params.chart // ""' < $payload)
 chart_name=$(jq -r '.params.chart_name // ""' < $payload)
 release_file=$(jq -r '.params.release // ""' < $payload)
@@ -31,6 +27,12 @@ wait_until_ready=$(jq -r '.params.wait_until_ready // 0' < $payload)
 debug=$(jq -r '.params.debug // "false"' < $payload)
 replace=$(jq -r '.params.replace // "false"' < $payload)
 delete=$(jq -r '.params.delete // "false"' < $payload)
+
+if [ -z "$namespace_file" ]; then
+  namespace=`cat $source/$namespace`
+else
+  namespace=$(jq -r '.source.namespace // ""' < $payload)
+fi
 
 if [ -n "$release_file" ]; then
   release=`cat $source/$release_file`
