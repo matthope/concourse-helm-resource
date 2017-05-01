@@ -22,7 +22,8 @@ namespace_file=$(jq -r '.params.namespace // ""' < $payload)
 chart=$(jq -r '.params.chart // ""' < $payload)
 chart_name=$(jq -r '.params.chart_name // ""' < $payload)
 release_file=$(jq -r '.params.release // ""' < $payload)
-values=$(jq -r '.params.values // ""' < $payload)
+values=$(jq -r '.params.values // ""| if type==“array” then join(” “) else . end' < $payload)
+
 wait_until_ready=$(jq -r '.params.wait_until_ready // 0' < $payload)
 debug=$(jq -r '.params.debug // "false"' < $payload)
 replace=$(jq -r '.params.replace // "false"' < $payload)
@@ -65,7 +66,9 @@ helm_install() {
     helm_cmd="$helm_cmd -n $release"
   fi
   if [ -n "$values" ]; then
-    helm_cmd="$helm_cmd -f $source/$values"
+    for i in $values; do
+      helm_cmd="$helm_cmd -f $source/$i"
+    done
   fi
   if [ "$replace" = true ]; then
     helm_cmd="$helm_cmd --replace"
@@ -89,7 +92,9 @@ current_revision() {
 helm_upgrade() {
   helm_cmd="helm upgrade $release"
   if [ -n "$values" ]; then
-    helm_cmd="$helm_cmd -f $source/$values"
+    for i in $values; do
+      helm_cmd="$helm_cmd -f $source/$i"
+    done
   fi
   if [ "$debug" = true ]; then
     helm_cmd="$helm_cmd --dry-run --debug"
