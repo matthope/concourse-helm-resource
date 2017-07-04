@@ -1,4 +1,4 @@
-FROM thebeefcake/docker-helm:2.4.2
+FROM thebeefcake/docker-helm:2.5.0
 MAINTAINER Mario Siegenthaler <mario.siegenthaler@linkyard.ch>
 
 RUN apk add --update --upgrade --no-cache jq bash nodejs curl

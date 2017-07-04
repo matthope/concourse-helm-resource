@@ -89,7 +89,7 @@ current_revision() {
 }
 
 helm_upgrade() {
-  helm_cmd="helm upgrade $release"
+  helm_cmd="helm upgrade --install $release"
   if [ -n "$values" ]; then
     for i in $values; do
       helm_cmd="$helm_cmd -f $source/$i"
