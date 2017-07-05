@@ -89,7 +89,7 @@ current_revision() {
 }
 
 helm_upgrade() {
-  helm_cmd="helm upgrade --install $release"
+  helm_cmd="helm upgrade --install --namespace $namespace $release"
   if [ -n "$values" ]; then
     for i in $values; do
       helm_cmd="$helm_cmd -f $source/$i"
@@ -138,7 +138,7 @@ else
     helm_upgrade
   else
     echo "Installing $release"
-    helm_install
+    helm_upgrade
   fi
 
   revision=$(current_revision)
