@@ -11,34 +11,34 @@ source /opt/resource/common.sh
 # Read inputs
 source=$1
 payload=$(mktemp helm-resource-request.XXXXXX)
-cat > $payload <&0
+cat > "$payload" <&0
 
 # Prepare
-setup_resource $payload $source
+setup_resource "$payload" "$source"
 echo "Resource setup successful."
 
 # Parse parameters
-namespace=$(jq -r '.source.namespace // "default"' < $payload)
-tiller_namespace=$(jq -r '.source.tiller_namespace // "kube-system"' < $payload)
-chart=$(jq -r '.params.chart // ""' < $payload)
-version=$(jq -r '.params.version // ""' < $payload)
-namespace_file=$(jq -r '.params.namespace // ""' < $payload)
-release_file=$(jq -r '.params.release // ""' < $payload)
-values=$(jq -r '.params.values // "" | if type == "array" then .[] else . end' < $payload)
-wait_until_ready=$(jq -r '.params.wait_until_ready // 0' < $payload)
-debug=$(jq -r '.params.debug // "false"' < $payload)
-replace=$(jq -r '.params.replace // "false"' < $payload)
-delete=$(jq -r '.params.delete // "false"' < $payload)
-test=$(jq -r '.params.test // "false"' < $payload)
-purge=$(jq -r '.params.purge // "false"' < $payload)
-devel=$(jq -r '.params.devel // "false"' < $payload)
-recreate_pods=$(jq -r '.params.recreate_pods // "false"' < $payload)
-force=$(jq -r '.params.force // "false"' < $payload)
-show_diff=$(jq -r '.params.show_diff // "false"' < $payload)
-recreate_pods=$(jq -r '.params.recreate_pods // "false"' < $payload)
-tls_enabled=$(jq -r '.source.tls_enabled // "false"' < $payload)
-exit_after_diff=$(jq -r '.params.exit_after_diff // "false"' < $payload)
-reuse_values=$(jq -r '.params.reuse_values // "false"' < $payload)
+namespace=$(jq -r '.source.namespace // "default"' < "$payload")
+tiller_namespace=$(jq -r '.source.tiller_namespace // "kube-system"' < "$payload")
+chart=$(jq -r '.params.chart // ""' < "$payload")
+version=$(jq -r '.params.version // ""' < "$payload")
+namespace_file=$(jq -r '.params.namespace // ""' < "$payload")
+release_file=$(jq -r '.params.release // ""' < "$payload")
+values=$(jq -r '.params.values // "" | if type == "array" then .[] else . end' < "$payload")
+wait_until_ready=$(jq -r '.params.wait_until_ready // 0' < "$payload")
+debug=$(jq -r '.params.debug // "false"' < "$payload")
+# replace=$(jq -r '.params.replace // "false"' < "$payload")
+delete=$(jq -r '.params.delete // "false"' < "$payload")
+test=$(jq -r '.params.test // "false"' < "$payload")
+purge=$(jq -r '.params.purge // "false"' < "$payload")
+devel=$(jq -r '.params.devel // "false"' < "$payload")
+recreate_pods=$(jq -r '.params.recreate_pods // "false"' < "$payload")
+force=$(jq -r '.params.force // "false"' < "$payload")
+show_diff=$(jq -r '.params.show_diff // "false"' < "$payload")
+recreate_pods=$(jq -r '.params.recreate_pods // "false"' < "$payload")
+tls_enabled=$(jq -r '.source.tls_enabled // "false"' < "$payload")
+exit_after_diff=$(jq -r '.params.exit_after_diff // "false"' < "$payload")
+reuse_values=$(jq -r '.params.reuse_values // "false"' < "$payload")
 
 if [ -z "$chart" ]; then
   if [[ "$test" == "false" && "$delete" == "false" ]]; then
@@ -48,19 +48,19 @@ if [ -z "$chart" ]; then
 fi
 
 if [ -f "$source/$namespace_file" ]; then
-  namespace=`cat $source/$namespace_file`
+  namespace=$( cat "$source/$namespace_file" )
 elif [ -n "$namespace_file" ]; then
   namespace=$namespace_file
 fi
 
 if [ -n "$release_file" ]; then
   if [ -f "$source/$release_file" ]; then
-    release=`cat $source/$release_file`
+    release=$( cat "$source/$release_file" )
   else
     release=$release_file
   fi
 else
-  release=$(jq -r '.source.release // ""' < $payload)
+  release=$(jq -r '.source.release // ""' < "$payload")
 fi
 
 if [[ "$chart" == *.tgz ]] || [[ -d "$source/$chart" ]]; then
@@ -94,20 +94,20 @@ set_overridden_values() {
 
     overridden_args+=("$helm_set_opt" "$key=$value")
     scrubbed_overridden_args+=("$helm_set_opt" "$key=$scrubbed_value")
-  done < <(jq -j '.params.override_values[]? | if .key and (.value or .path) then (.key, .value // "", .path // "", .hide // false, .type) else empty end | tostring + "\u0000"'  < $payload)
+  done < <(jq -j '.params.override_values[]? | if .key and (.value or .path) then (.key, .value // "", .path // "", .hide // false, .type) else empty end | tostring + "\u0000"'  < "$payload")
 }
 
 # Find the current revision of a helm release
 current_deployed() {
-  helm history $tls_flag --tiller-namespace $tiller_namespace --max 20 $release | grep "DEPLOYED"
+  helm history $tls_flag --tiller-namespace "$tiller_namespace" --max 20 "$release" | grep "DEPLOYED"
 }
 
 helm_upgrade() {
-  upgrade_args=("upgrade" "$release" $chart_full "--tiller-namespace=$tiller_namespace")
+  upgrade_args=("upgrade" "$release" "$chart_full" "--tiller-namespace=$tiller_namespace")
   non_diff_args=("--install" "--namespace" "$namespace")
   if [ -n "$values" ]; then
     for value in $values; do
-      upgrade_args+=("-f" "$source/"$value)
+      upgrade_args+=("-f" "$source/$value")
     done
   fi
   overridden_args=()
@@ -125,7 +125,7 @@ helm_upgrade() {
   fi
   if [ -n "$version" ]; then
     if [ -f "$source/$version" ]; then
-      version=$(cat $source/$version)
+      version=$(cat "$source/$version")
     fi
     upgrade_args+=("--version" "$version")
   fi
@@ -173,7 +173,7 @@ helm_delete() {
   if [ "$debug" = true ]; then
     delete_args+=("--dry-run" "--debug")
   fi
-  
+
   if [ "$purge" = true ]; then
     delete_args+=("--purge")
   fi
@@ -200,26 +200,27 @@ helm_test() {
   mkdir -p /tmp
   echo "Running command helm ${test_args[@]} | tee $logfile"
   result=$(helm "${test_args[@]}" $tls_flag || true)
-  
+
   if [[ $result = *"FAILED"* ]]; then
-    _cmd=$(echo $result | awk -F '`' '{print $2};')
-    
+    _cmd=$(echo "$result" | awk -F '`' '{print $2};')
+
     echo ""
     echo "#### FAILED TEST OUTPUT ####" | tee $logfile
     $_cmd | tee $logfile
     echo "#### FAILED TEST OUTPUT ####" | tee $logfile
     echo ""
 
-    cleanup=$(echo $_cmd | sed 's/logs/delete pod/g')
+    cleanup=${_cmd//logs/delete pod}
+
     $cleanup | tee $logfile
 
     exit 1
   elif [[ $result = *"ERROR"* ]]; then
-    echo $result | tee $logfile
+    echo "$result" | tee $logfile
     exit 1
-  elif [[ $result = *"PASSED"* ]]; then
-    echo $result | tee $logfile
-    kubectl delete pod $(echo $result | awk '{print $2};') -n $namespace | tee $logfile
+  elif [[ "$result" = *"PASSED"* ]]; then
+    echo "$result" | tee $logfile
+    kubectl delete pod "$(echo "$result" | awk '{print $2};')" -n "$namespace" | tee $logfile
   else
     echo "Unhandled"
     exit 1
@@ -246,8 +247,8 @@ else
   helm_upgrade
 
   deployed=$(current_deployed)
-  revision=$(echo $deployed | awk '{ print $1 }')
-  chart=$(echo $deployed | awk '{ print $8 }')
+  revision=$(echo "$deployed" | awk '{ print $1 }')
+  chart=$(echo "$deployed" | awk '{ print $8 }')
   echo "Deployed revision $revision of $release"
   wait_ready_notice
   result="$(jq -n "{version:{release:\"$release\", revision:\"$revision\"}, metadata: [{name: \"release\", value: \"$release\"},{name: \"revision\", value: \"$revision\"},{name: \"chart\", value: \"$chart\"}]}")"
