@@ -120,6 +120,10 @@ setup_helm() {
   else
     helm version --tiller-namespace "$tiller_namespace"
   fi
+
+  # If the docker image supports multiple versions of helm.
+  HELM_VERSION=$( helm version --server --short | sed -e 's,Server: \(v.*\)+.*,\1,' )
+  if [ -e /bin/helm-${HELM_VERSION} ]; then ln -sf /bin/helm-${HELM_VERSION} /bin/helm ; fi
 }
 
 wait_for_service_up() {
