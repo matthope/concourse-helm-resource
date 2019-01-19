@@ -22,28 +22,38 @@ cat > "$payload" <&0
 setup_resource "$payload" "$source"
 echo "Resource setup successful."
 
+# set parameters from config_file
+config_file=$(jq -r '.params.config_file // ""' < "$payload")
+if [ -n "$config_file" ]; then
+  if [ -f "${source}/${config_file}" ]; then
+    eval $(parse_yaml ${source}/${config_file} "")
+  else
+    echo "Cannot open '$config_file' (${source}/${config_file}), skipping."
+  fi
+fi
+
 # Parse parameters
-namespace=$(jq -r '.source.namespace // "default"' < "$payload")
-tiller_namespace=$(jq -r '.source.tiller_namespace // "kube-system"' < "$payload")
-chart=$(jq -r '.params.chart // ""' < "$payload")
-version=$(jq -r '.params.version // ""' < "$payload")
-namespace_file=$(jq -r '.params.namespace // ""' < "$payload")
-release_file=$(jq -r '.params.release // ""' < "$payload")
+namespace=$(jq -r ".source.namespace // \"${namespace:-default}\"" < "$payload")
+tiller_namespace=$(jq -r ".source.tiller_namespace // \"${tiller_namespace:-kube-system}\"" < "$payload")
+chart=$(jq -r ".params.chart // \"$chart\"" < "$payload")
+version=$(jq -r ".params.version // \"$version\"" < "$payload")
+namespace_file=$(jq -r ".params.namespace // \"$namespace_file\"" < "$payload")
+release_file=$(jq -r ".params.release // \"$release_file\"" < "$payload")
 values=$(jq -r '.params.values // "" | if type == "array" then .[] else . end' < "$payload")
-wait_until_ready=$(jq -r '.params.wait_until_ready // 0' < "$payload")
-debug=$(jq -r '.params.debug // "false"' < "$payload")
-# replace=$(jq -r '.params.replace // "false"' < "$payload")
-delete=$(jq -r '.params.delete // "false"' < "$payload")
-test=$(jq -r '.params.test // "false"' < "$payload")
-purge=$(jq -r '.params.purge // "false"' < "$payload")
-devel=$(jq -r '.params.devel // "false"' < "$payload")
-recreate_pods=$(jq -r '.params.recreate_pods // "false"' < "$payload")
-force=$(jq -r '.params.force // "false"' < "$payload")
-show_diff=$(jq -r '.params.show_diff // "false"' < "$payload")
-recreate_pods=$(jq -r '.params.recreate_pods // "false"' < "$payload")
-tls_enabled=$(jq -r '.source.tls_enabled // "false"' < "$payload")
-exit_after_diff=$(jq -r '.params.exit_after_diff // "false"' < "$payload")
-reuse_values=$(jq -r '.params.reuse_values // "false"' < "$payload")
+wait_until_ready=$(jq -r ".params.wait_until_ready // ${wait_until_ready:-0}" < "$payload")
+debug=$(jq -r ".params.debug // \"${debug:-false}\"" < "$payload")
+replace=$(jq -r ".params.replace // \"${replace:-false}\"" < "$payload")
+delete=$(jq -r ".params.delete // \"${delete:-false}\"" < "$payload")
+test=$(jq -r ".params.test // \"${test:-false}\"" < "$payload")
+purge=$(jq -r ".params.purge // \"${purge:-false}\"" < "$payload")
+devel=$(jq -r ".params.devel // \"${devel:-false}\"" < "$payload")
+recreate_pods=$(jq -r ".params.recreate_pods // \"${recreate_pods:-false}\"" < "$payload")
+force=$(jq -r ".params.force // \"${force:-false}\"" < "$payload")
+show_diff=$(jq -r ".params.show_diff // \"${show_diff:-false}\"" < "$payload")
+recreate_pods=$(jq -r ".params.recreate_pods // \"${recreate_pods:-false}\"" < "$payload")
+tls_enabled=$(jq -r ".params.tls_enabled // \"${tls_enabled:-false}\"" < "$payload")
+exit_after_diff=$(jq -r ".params.exit_after_diff // \"${exit_after_diff:-false}\"" < "$payload")
+reuse_values=$(jq -r ".params.reuse_values // \"${reuse_values:-false}\"" < "$payload")
 
 if [ -z "$chart" ]; then
   if [[ "$test" == "false" && "$delete" == "false" ]]; then
