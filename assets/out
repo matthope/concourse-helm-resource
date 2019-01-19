@@ -36,6 +36,7 @@ recreate_pods=$(jq -r '.params.recreate_pods // "false"' < $payload)
 force=$(jq -r '.params.force // "false"' < $payload)
 show_diff=$(jq -r '.params.show_diff // "false"' < $payload)
 recreate_pods=$(jq -r '.params.recreate_pods // "false"' < $payload)
+timeout=$(jq -r '.params.timeout // ""' < $payload)
 tls_enabled=$(jq -r '.source.tls_enabled // "false"' < $payload)
 exit_after_diff=$(jq -r '.params.exit_after_diff // "false"' < $payload)
 reuse_values=$(jq -r '.params.reuse_values // "false"' < $payload)
@@ -131,6 +132,9 @@ helm_upgrade() {
   fi
   if [ "$recreate_pods" = true ]; then
     non_diff_args+=("--recreate-pods")
+  fi
+  if [ -n "$timeout" ]; then
+    non_diff_args+=("--timeout" "$timeout")
   fi
   if [ "$force" = true ]; then
     non_diff_args+=("--force")
